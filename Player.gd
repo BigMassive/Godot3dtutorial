@@ -6,6 +6,10 @@ const MAX_SPEED  = 20
 const JUMP_SPEED = 18
 const ACCEL      = 4.5
 
+const MAX_SPRINT_SPEED = 30
+const SPRINT_ACCEL = 18
+var is_sprinting = false
+
 var dir = Vector3()
 
 const DEACCEL = 16
@@ -14,11 +18,14 @@ const MAX_SLOPE_ANGLE = 40
 var camera
 var rotation_helper
 
+var flashlight
+
 var MOUSE_SENSITIVITY = 0.05
 
 func _ready():
 	camera = $Rotation_Helper/Camera
 	rotation_helper = $Rotation_Helper
+	flashlight = $Rotation_Helper/Flashlight
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	
 func _physics_process(delta):
@@ -62,7 +69,23 @@ func process_input(delta):
 		else:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 			
-
+	#--------------------------------------
+	# Sprinting
+	if Input.is_action_pressed("movement_sprint"):
+		is_sprinting = true
+	else:
+		is_sprinting = false
+		
+	#---------------------------------------
+	# Turning the flashlight on/off
+	if Input.is_action_just_pressed("flashlight"):
+		if flashlight.is_visible_in_tree():
+			flashlight.hide()
+		else:
+			flashlight.show()
+			
+			
+			
 func process_movement(delta):
 	dir.y = 0
 	dir = dir.normalized()
@@ -73,11 +96,17 @@ func process_movement(delta):
 	hvel.y = 0
 	
 	var target = dir
-	target *= MAX_SPEED
+	if is_sprinting:
+		target *= MAX_SPRINT_SPEED
+	else:
+		target *= MAX_SPEED
 	
 	var accel
 	if dir.dot(hvel) > 0:
-		accel = ACCEL
+		if is_sprinting:
+			accel = SPRINT_ACCEL
+		else:
+			accel = ACCEL
 	else:
 		accel = DEACCEL
 		
@@ -93,7 +122,7 @@ func _input(event):
 		self.rotate_y(deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
 	
 	var camera_rot = rotation_helper.rotation_degrees
-	camera_rot.x = clamp(camera_rot.x, -70, 79)
+	camera_rot.x = clamp(camera_rot.x, -70, 70)
 
 
 
