@@ -1,0 +1,4 @@
+.mono/metadata/*
+git_api.*
+godot-git*
+
